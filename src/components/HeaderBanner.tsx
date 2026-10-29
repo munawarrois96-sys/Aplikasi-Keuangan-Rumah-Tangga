@@ -11,7 +11,8 @@ import {
   Volume2,
   VolumeX,
   Play,
-  Pause
+  Pause,
+  FileSpreadsheet
 } from 'lucide-react';
 import { UserRole } from '../types/finance';
 import { getGreetingIndo } from '../utils/formatters';
@@ -21,10 +22,12 @@ interface HeaderBannerProps {
   onRoleChange: (role: UserRole) => void;
   onOpenNewTransaction: () => void;
   onOpenAIModal: () => void;
+  onOpenSheetsTab: () => void;
   onOpenPrint: () => void;
   onResetData: () => void;
   alertCount: number;
   totalNetWorth: number;
+  isGoogleConnected?: boolean;
 }
 
 export const HeaderBanner: React.FC<HeaderBannerProps> = ({
@@ -32,9 +35,11 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
   onRoleChange,
   onOpenNewTransaction,
   onOpenAIModal,
+  onOpenSheetsTab,
   onOpenPrint,
   onResetData,
   alertCount,
+  isGoogleConnected,
 }) => {
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
   const [todayStr] = useState(() => {
@@ -147,6 +152,19 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
 
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Google Sheets Quick Button */}
+          <button
+            onClick={onOpenSheetsTab}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition shadow-xs"
+            title="Kelola Integrasi Google Sheets"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">Google Sheets</span>
+            {isGoogleConnected && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span>
+            )}
+          </button>
+
           {/* AI Assistant button */}
           <button
             onClick={onOpenAIModal}

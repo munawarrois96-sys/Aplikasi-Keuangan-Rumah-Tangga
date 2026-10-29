@@ -38,9 +38,17 @@ import { BillsView } from './components/BillsView';
 import { CollaborationView } from './components/CollaborationView';
 import { AIAdvisorView } from './components/AIAdvisorView';
 import { ReportsView } from './components/ReportsView';
+import { GoogleSheetsView } from './components/GoogleSheetsView';
 import { TransactionModal } from './components/TransactionModal';
+import { initAuth, googleSignIn, logout, getAccessToken } from './services/authService';
+import { User } from 'firebase/auth';
 
 export default function App() {
+  // Google Workspace Auth states
+  const [user, setUser] = useState<User | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+
   // Local storage persistence initialization
   const [accounts, setAccounts] = useState<Account[]>(() => {
     const saved = localStorage.getItem('arthakeluarga_accounts');
@@ -161,6 +169,60 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('arthakeluarga_leak_report', JSON.stringify(leakReport));
   }, [leakReport]);
+
+  // Google Workspace Auth listener
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (u, t) => {
+        setUser(u);
+        setAccessToken(t);
+      },
+      () => {
+        setUser(null);
+        setAccessToken(null);
+      }
+    );
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    setAuthLoading(true);
+    try {
+      const res = await googleSignIn();
+      if (res) {
+        setUser(res.user);
+        setAccessToken(res.accessToken);
+      }
+    } catch (err: any) {
+      console.error('Google Sign in failed:', err);
+      alert(`Gagal menghubungkan ke Google: ${err.message || 'Periksa koneksi Anda.'}`);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleGoogleSignOut = async () => {
+    await logout();
+    setUser(null);
+    setAccessToken(null);
+  };
+
+  const handleImportTransactions = (imported: Partial<Transaction>[]) => {
+    const formatted: Transaction[] = imported.map((tx, idx) => ({
+      id: tx.id || `imported-${Date.now()}-${idx}`,
+      date: tx.date || new Date().toISOString().split('T')[0],
+      type: tx.type || 'expense',
+      amount: tx.amount || 0,
+      category: tx.category || 'Kebutuhan Pokok',
+      accountId: accounts[0]?.id || 'acc-1',
+      description: tx.description || 'Transaksi Impor Google Sheets',
+      creator: tx.creator || 'Bersama',
+      isRecurring: tx.isRecurring || false,
+    }));
+    setTransactions((prev) => [...formatted, ...prev]);
+  };
 
   // Handler: Add Transaction & automatically adjust account balance
   const handleAddTransaction = (newTxData: Omit<Transaction, 'id'>) => {
@@ -435,6 +497,7 @@ export default function App() {
         onRoleChange={setActiveRole}
         onOpenNewTransaction={() => setIsTxModalOpen(true)}
         onOpenAIModal={() => setActiveTab('ai')}
+        onOpenSheetsTab={() => setActiveTab('sheets')}
         onOpenPrint={() => {
           setActiveTab('reports');
           setTimeout(() => window.print(), 300);
@@ -442,6 +505,7 @@ export default function App() {
         onResetData={handleResetData}
         alertCount={totalAlertCount}
         totalNetWorth={totalNetWorth}
+        isGoogleConnected={Boolean(user && accessToken)}
       />
 
       {/* 2. NAVIGATION TABS */}
@@ -449,6 +513,7 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         alertCount={unpaidBillsCount}
+        hasGoogleConnected={Boolean(user && accessToken)}
       />
 
       {/* 3. MAIN CONTENT CONTAINER */}
@@ -571,6 +636,26 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'sheets' && (
+          <GoogleSheetsView
+            user={user}
+            accessToken={accessToken}
+            authLoading={authLoading}
+            onSignIn={handleGoogleSignIn}
+            onSignOut={handleGoogleSignOut}
+            accounts={accounts}
+            transactions={transactions}
+            budgets={budgets}
+            debts={debts}
+            assets={assets}
+            bills={bills}
+            emergencyFund={emergencyFund}
+            collaboration={collaboration}
+            onImportTransactions={handleImportTransactions}
+            activeRole={activeRole}
+          />
+        )}
+
         {activeTab === 'reports' && (
           <ReportsView
             transactions={transactions}
@@ -581,6 +666,7 @@ export default function App() {
             emergencyFund={emergencyFund}
             collaboration={collaboration}
             activeRole={activeRole}
+            onOpenGoogleSheets={() => setActiveTab('sheets')}
           />
         )}
       </main>

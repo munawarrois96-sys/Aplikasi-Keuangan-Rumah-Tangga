@@ -34,6 +34,7 @@ interface ReportsViewProps {
   emergencyFund: EmergencyFund;
   collaboration: HouseholdCollaboration;
   activeRole: UserRole;
+  onOpenGoogleSheets?: () => void;
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({
@@ -45,6 +46,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   emergencyFund,
   collaboration,
   activeRole,
+  onOpenGoogleSheets,
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2026-10');
 
@@ -138,6 +140,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <option value="2026-08">Agustus 2026</option>
             </select>
           </div>
+
+          {onOpenGoogleSheets && (
+            <button
+              onClick={onOpenGoogleSheets}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition shadow-2xs"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Ekspor ke Google Sheets</span>
+            </button>
+          )}
 
           <button
             onClick={handleExportCSV}

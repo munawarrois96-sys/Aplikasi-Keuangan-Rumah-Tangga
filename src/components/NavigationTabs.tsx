@@ -21,6 +21,7 @@ export type TabKey =
   | 'networth'
   | 'bills'
   | 'collaboration'
+  | 'sheets'
   | 'ai'
   | 'reports';
 
@@ -28,14 +29,16 @@ interface NavigationTabsProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
   alertCount?: number;
+  hasGoogleConnected?: boolean;
 }
 
 export const NavigationTabs: React.FC<NavigationTabsProps> = ({
   activeTab,
   onTabChange,
   alertCount = 0,
+  hasGoogleConnected = false,
 }) => {
-  const tabs: { key: TabKey; label: string; icon: React.FC<{ className?: string }>; badge?: number }[] = [
+  const tabs: { key: TabKey; label: string; icon: React.FC<{ className?: string }>; badge?: number; isGreen?: boolean }[] = [
     { key: 'dashboard', label: 'Ringkasan', icon: LayoutDashboard },
     { key: 'cashflow', label: 'Arus Kas', icon: ArrowLeftRight },
     { key: 'budget', label: 'Smart Budget', icon: PieChart },
@@ -44,6 +47,7 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
     { key: 'networth', label: 'Neraca Kekayaan', icon: Building },
     { key: 'bills', label: 'Pengingat Tagihan', icon: BellRing, badge: alertCount },
     { key: 'collaboration', label: 'Kolaborasi Keluarga', icon: HeartHandshake },
+    { key: 'sheets', label: 'Google Sheets', icon: FileSpreadsheet, isGreen: true },
     { key: 'ai', label: 'Asisten AI & Kebocoran', icon: Sparkles },
     { key: 'reports', label: 'Laporan & Analisis', icon: FileSpreadsheet },
   ];
@@ -65,8 +69,11 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
                     : 'text-slate-600 hover:text-sky-700 hover:bg-slate-50'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? (tab.isGreen ? 'text-emerald-600' : 'text-sky-600') : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
+                {tab.isGreen && (
+                  <span className={`w-2 h-2 rounded-full ${hasGoogleConnected ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-300'}`} title={hasGoogleConnected ? 'Google Sheets Terhubung' : 'Belum Terhubung'}></span>
+                )}
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span className="ml-0.5 px-1.5 py-0.2 bg-amber-500 text-white rounded-full text-[10px] font-bold">
                     {tab.badge}
