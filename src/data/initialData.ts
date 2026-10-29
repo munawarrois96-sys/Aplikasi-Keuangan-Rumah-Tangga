@@ -503,9 +503,9 @@ export const initialBills: RecurringBill[] = [
 
 export const initialCollaboration: HouseholdCollaboration = {
   activeProfile: 'Bersama',
-  husbandName: 'Rian Hendrawan',
-  wifeName: 'Siti Rahma',
-  familyName: 'Keluarga Hendrawan',
+  husbandName: 'Munawar Rois',
+  wifeName: 'Wini Yusnia',
+  familyName: 'Keluarga Munawar Rois',
   dailyAllowanceTarget: 150000, // Rp 150.000 / hari
   dailyAllowanceSpentThisMonth: 3900000,
   monthlyGroceryBudget: 4500000,

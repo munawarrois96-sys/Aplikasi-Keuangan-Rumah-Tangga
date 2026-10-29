@@ -61,7 +61,7 @@ export const AIAdvisorView: React.FC<AIAdvisorViewProps> = ({
     {
       id: '1',
       sender: 'ai',
-      text: `Halo ${activeRole === 'Bersama' ? 'Keluarga Hendrawan' : activeRole === 'Suami' ? 'Pak Rian' : 'Ibu Siti'}! Saya adalah Asisten Keuangan Keluarga Cerdas berbasis AI Anda. 
+      text: `Halo ${activeRole === 'Bersama' ? (collaboration?.familyName || 'Keluarga Munawar Rois') : activeRole === 'Suami' ? 'Pak Munawar Rois' : 'Ibu Wini Yusnia'}! Saya adalah Asisten Keuangan Keluarga Cerdas berbasis AI Anda. 
 
 Saya siap membantu menganalisis arus kas bulanan, strategi pelunasan KPR/utang, dana pendidikan anak, maupun mendeteksi kebocoran pengeluaran halus keluarga. Ada yang ingin didiskusikan hari ini?`,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
@@ -323,7 +323,7 @@ Saya siap membantu menganalisis arus kas bulanan, strategi pelunasan KPR/utang, 
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Konsultan Finansial Keluarga ArthaKeluarga</h3>
+                <h3 className="font-bold text-sm">Konsultan Finansial Keluarga Munawar Rois</h3>
                 <span className="text-[11px] text-sky-100 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span>
                   Model Gemini Siap Menjawab

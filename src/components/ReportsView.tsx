@@ -166,7 +166,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               Laporan Keuangan Rumah Tangga Terintegrasi
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
-              {collaboration.familyName || 'Keluarga Hendrawan'}
+              {collaboration.familyName || 'Keluarga Munawar Rois'}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
               Periode: <strong>{selectedPeriod}</strong> • Penanggung Jawab: {collaboration.husbandName} & {collaboration.wifeName}

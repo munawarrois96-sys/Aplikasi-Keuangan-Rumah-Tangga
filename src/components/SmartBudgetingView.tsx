@@ -434,8 +434,8 @@ export const SmartBudgetingView: React.FC<SmartBudgetingViewProps> = ({
                   className="w-full px-3 py-2 border rounded-xl font-semibold"
                 >
                   <option value="Bersama">🏡 Bersama</option>
-                  <option value="Suami">👨 Suami (Rian)</option>
-                  <option value="Istri">👩 Istri (Siti)</option>
+                  <option value="Suami">👨 Suami (Munawar Rois)</option>
+                  <option value="Istri">👩 Istri (Wini Yusnia)</option>
                 </select>
               </div>
 

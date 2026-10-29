@@ -89,7 +89,23 @@ export default function App() {
 
   const [collaboration, setCollaboration] = useState<HouseholdCollaboration>(() => {
     const saved = localStorage.getItem('arthakeluarga_collab');
-    return saved ? JSON.parse(saved) : initialCollaboration;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.husbandName === 'Rian Hendrawan' || parsed.familyName === 'Keluarga Hendrawan') {
+          return {
+            ...parsed,
+            husbandName: 'Munawar Rois',
+            wifeName: 'Wini Yusnia',
+            familyName: 'Keluarga Munawar Rois',
+          };
+        }
+        return parsed;
+      } catch {
+        return initialCollaboration;
+      }
+    }
+    return initialCollaboration;
   });
 
   const [leakReport, setLeakReport] = useState<AILeakAnalysis>(() => {
@@ -573,7 +589,7 @@ export default function App() {
       <footer className="bg-white border-t border-sky-100 py-4 text-center text-xs text-slate-400 no-print">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 font-bold text-sky-800">
-            <span>ArthaKeluarga</span>
+            <span>Keluarga Munawar Rois</span>
             <span>•</span>
             <span className="text-slate-500 font-normal">Sistem Manajemen Keuangan Rumah Tangga Terintegrasi & Asisten AI</span>
           </div>

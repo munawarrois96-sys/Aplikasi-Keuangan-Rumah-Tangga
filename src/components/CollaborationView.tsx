@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   HeartHandshake,
   Users,
@@ -33,6 +33,12 @@ export const CollaborationView: React.FC<CollaborationViewProps> = ({
   const [husbandName, setHusbandName] = useState(collaboration.husbandName);
   const [wifeName, setWifeName] = useState(collaboration.wifeName);
   const [familyName, setFamilyName] = useState(collaboration.familyName);
+
+  useEffect(() => {
+    setHusbandName(collaboration.husbandName);
+    setWifeName(collaboration.wifeName);
+    setFamilyName(collaboration.familyName);
+  }, [collaboration.husbandName, collaboration.wifeName, collaboration.familyName]);
 
   const [roleBelanja, setRoleBelanja] = useState<UserRole>(collaboration.assignedRoles.belanjaHarian);
   const [roleUtilitas, setRoleUtilitas] = useState<UserRole>(collaboration.assignedRoles.utilitasRumah);

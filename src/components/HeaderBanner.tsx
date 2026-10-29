@@ -103,7 +103,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg md:text-xl font-extrabold tracking-tight bg-gradient-to-r from-sky-700 via-sky-600 to-cyan-600 bg-clip-text text-transparent">
-                ArthaKeluarga
+                Keluarga Munawar Rois
               </h1>
               <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-200">
                 AI Integrated
@@ -111,7 +111,7 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
             </div>
             <p className="text-xs text-slate-500 flex items-center gap-1">
               <span>{getGreetingIndo()},</span>
-              <span className="font-semibold text-slate-700">Keluarga Hendrawan</span>
+              <span className="font-semibold text-slate-700">Keluarga Munawar Rois</span>
             </p>
           </div>
         </div>
@@ -125,9 +125,9 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
           {(['Bersama', 'Suami', 'Istri'] as UserRole[]).map((role) => {
             const isActive = activeRole === role;
             const labelMap: Record<UserRole, string> = {
-              Bersama: '🏡 Keluarga (Bersama)',
-              Suami: '👨 Suami (Rian)',
-              Istri: '👩 Istri (Siti)',
+              Bersama: '🏡 Keluarga Munawar Rois',
+              Suami: '👨 Suami (Munawar Rois)',
+              Istri: '👩 Istri (Wini Yusnia)',
             };
             return (
               <button
