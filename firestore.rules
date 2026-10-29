@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny all unhandled paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'updatedAt'])
+        && data.uid is string && data.uid.size() <= 128
+        && data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 256;
+    }
+
+    function isValidHouseholdData(data, userId) {
+      return data.keys().hasAll(['userId', 'lastSyncedAt'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.lastSyncedAt is string && data.lastSyncedAt.size() <= 64;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read: if isSignedIn() && isValidId(docId);
+      allow write: if false;
+    }
+
+    // User Profile Document
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Synced household financial state subcollection
+      match /household/{docId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(docId);
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(docId) && isValidHouseholdData(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(docId) && isValidHouseholdData(incoming(), userId);
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(docId);
+      }
+    }
+  }
+}

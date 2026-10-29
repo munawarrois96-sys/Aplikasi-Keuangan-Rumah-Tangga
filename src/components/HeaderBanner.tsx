@@ -12,7 +12,8 @@ import {
   VolumeX,
   Play,
   Pause,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Database
 } from 'lucide-react';
 import { UserRole } from '../types/finance';
 import { getGreetingIndo } from '../utils/formatters';
@@ -23,11 +24,13 @@ interface HeaderBannerProps {
   onOpenNewTransaction: () => void;
   onOpenAIModal: () => void;
   onOpenSheetsTab: () => void;
+  onOpenSqlModal: () => void;
   onOpenPrint: () => void;
   onResetData: () => void;
   alertCount: number;
   totalNetWorth: number;
   isGoogleConnected?: boolean;
+  isCloudSynced?: boolean;
 }
 
 export const HeaderBanner: React.FC<HeaderBannerProps> = ({
@@ -36,10 +39,12 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
   onOpenNewTransaction,
   onOpenAIModal,
   onOpenSheetsTab,
+  onOpenSqlModal,
   onOpenPrint,
   onResetData,
   alertCount,
   isGoogleConnected,
+  isCloudSynced = true,
 }) => {
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
   const [todayStr] = useState(() => {
@@ -152,6 +157,17 @@ export const HeaderBanner: React.FC<HeaderBannerProps> = ({
 
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* SQL Connect & Cloud Sync Button */}
+          <button
+            onClick={onOpenSqlModal}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-xl transition shadow-xs"
+            title="Lihat Skema SQL & Status Sinkronisasi Multi-Perangkat"
+          >
+            <Database className="w-3.5 h-3.5 text-sky-600" />
+            <span className="hidden sm:inline">SQL Connect</span>
+            <span className={`w-2 h-2 rounded-full ${isCloudSynced ? 'bg-sky-500 ring-2 ring-sky-200 animate-pulse' : 'bg-slate-300'}`}></span>
+          </button>
+
           {/* Google Sheets Quick Button */}
           <button
             onClick={onOpenSheetsTab}

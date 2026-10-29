@@ -39,8 +39,16 @@ import { CollaborationView } from './components/CollaborationView';
 import { AIAdvisorView } from './components/AIAdvisorView';
 import { ReportsView } from './components/ReportsView';
 import { GoogleSheetsView } from './components/GoogleSheetsView';
+import { SqlConnectView } from './components/SqlConnectView';
+import { SqlSchemaModal } from './components/SqlSchemaModal';
 import { TransactionModal } from './components/TransactionModal';
 import { initAuth, googleSignIn, logout, getAccessToken } from './services/authService';
+import {
+  saveHouseholdToFirestore,
+  subscribeHouseholdFromFirestore,
+  testConnection,
+  SyncedHouseholdPayload
+} from './services/firestoreSync';
 import { User } from 'firebase/auth';
 
 export default function App() {
@@ -124,6 +132,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [activeRole, setActiveRole] = useState<UserRole>('Bersama');
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() =>
+    localStorage.getItem('arthakeluarga_last_synced')
+  );
+  const [isCloudConnected, setIsCloudConnected] = useState(true);
 
   // Sync to localStorage
   useEffect(() => {
@@ -170,6 +184,13 @@ export default function App() {
     localStorage.setItem('arthakeluarga_leak_report', JSON.stringify(leakReport));
   }, [leakReport]);
 
+  // Test Firestore connection on mount
+  useEffect(() => {
+    testConnection().then((connected) => {
+      setIsCloudConnected(connected);
+    });
+  }, []);
+
   // Google Workspace Auth listener
   useEffect(() => {
     const unsubscribe = initAuth(
@@ -186,6 +207,131 @@ export default function App() {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, []);
+
+  // Real-time Firestore Multi-Device Sync Listener
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const unsubscribe = subscribeHouseholdFromFirestore(
+      user.uid,
+      (remote, syncTime) => {
+        if (remote.accounts && remote.accounts.length > 0) setAccounts(remote.accounts);
+        if (remote.transactions) setTransactions(remote.transactions);
+        if (remote.budgets && remote.budgets.length > 0) setBudgets(remote.budgets);
+        if (remote.emergencyFund) setEmergencyFund(remote.emergencyFund);
+        if (remote.goals && remote.goals.length > 0) setGoals(remote.goals);
+        if (remote.investments && remote.investments.length > 0) setInvestments(remote.investments);
+        if (remote.debts && remote.debts.length > 0) setDebts(remote.debts);
+        if (remote.assets && remote.assets.length > 0) setAssets(remote.assets);
+        if (remote.bills && remote.bills.length > 0) setBills(remote.bills);
+        if (remote.collaboration) setCollaboration(remote.collaboration);
+        if (remote.leakReport) setLeakReport(remote.leakReport);
+        setLastSyncedAt(syncTime);
+        localStorage.setItem('arthakeluarga_last_synced', syncTime);
+      },
+      (err) => {
+        console.warn('Real-time sync subscriber notice:', err);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.uid]);
+
+  // Auto-sync debounced mutation to Firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+    const timer = setTimeout(() => {
+      saveHouseholdToFirestore(user.uid, {
+        accounts,
+        transactions,
+        budgets,
+        emergencyFund,
+        goals,
+        investments,
+        debts,
+        assets,
+        bills,
+        collaboration,
+        leakReport,
+      })
+        .then((syncTime) => {
+          setLastSyncedAt(syncTime);
+          localStorage.setItem('arthakeluarga_last_synced', syncTime);
+        })
+        .catch((err) => {
+          console.warn('Auto-sync background error:', err);
+        });
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [
+    user?.uid,
+    accounts,
+    transactions,
+    budgets,
+    emergencyFund,
+    goals,
+    investments,
+    debts,
+    assets,
+    bills,
+    collaboration,
+    leakReport,
+  ]);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      if (!user?.uid) {
+        // Trigger Google Sign-in so the database can sync with this user's cloud project
+        const res = await googleSignIn();
+        if (res?.user) {
+          setUser(res.user);
+          setAccessToken(res.accessToken);
+          const syncTime = await saveHouseholdToFirestore(res.user.uid, {
+            accounts,
+            transactions,
+            budgets,
+            emergencyFund,
+            goals,
+            investments,
+            debts,
+            assets,
+            bills,
+            collaboration,
+            leakReport,
+          });
+          setLastSyncedAt(syncTime);
+          localStorage.setItem('arthakeluarga_last_synced', syncTime);
+          alert('Berhasil terhubung ke akun Google dan data tersinkronisasi ke Cloud Database!');
+        }
+      } else {
+        const syncTime = await saveHouseholdToFirestore(user.uid, {
+          accounts,
+          transactions,
+          budgets,
+          emergencyFund,
+          goals,
+          investments,
+          debts,
+          assets,
+          bills,
+          collaboration,
+          leakReport,
+        });
+        setLastSyncedAt(syncTime);
+        localStorage.setItem('arthakeluarga_last_synced', syncTime);
+        alert('Data berhasil disinkronkan ke Cloud Database. Perangkat lain akan langsung menerima pembaruan ini.');
+      }
+    } catch (err: any) {
+      console.error('Manual sync failed:', err);
+      alert(`Gagal menyinkronkan data: ${err.message || 'Periksa koneksi Anda.'}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setAuthLoading(true);
@@ -498,6 +644,7 @@ export default function App() {
         onOpenNewTransaction={() => setIsTxModalOpen(true)}
         onOpenAIModal={() => setActiveTab('ai')}
         onOpenSheetsTab={() => setActiveTab('sheets')}
+        onOpenSqlModal={() => setIsSqlModalOpen(true)}
         onOpenPrint={() => {
           setActiveTab('reports');
           setTimeout(() => window.print(), 300);
@@ -506,6 +653,7 @@ export default function App() {
         alertCount={totalAlertCount}
         totalNetWorth={totalNetWorth}
         isGoogleConnected={Boolean(user && accessToken)}
+        isCloudSynced={isCloudConnected}
       />
 
       {/* 2. NAVIGATION TABS */}
@@ -656,6 +804,26 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'sql' && (
+          <SqlConnectView
+            user={user}
+            lastSyncedAt={lastSyncedAt}
+            isSyncing={isSyncing}
+            onManualSync={handleManualSync}
+            household={collaboration}
+            accounts={accounts}
+            transactions={transactions}
+            budgets={budgets}
+            emergencyFund={emergencyFund}
+            goals={goals}
+            investments={investments}
+            debts={debts}
+            assets={assets}
+            bills={bills}
+            onOpenGoogleSignIn={handleGoogleSignIn}
+          />
+        )}
+
         {activeTab === 'reports' && (
           <ReportsView
             transactions={transactions}
@@ -692,6 +860,26 @@ export default function App() {
         onSave={handleAddTransaction}
         accounts={accounts}
         activeRole={activeRole}
+      />
+
+      {/* 6. MODAL SQL SCHEMA & CLOUD SYNC */}
+      <SqlSchemaModal
+        isOpen={isSqlModalOpen}
+        onClose={() => setIsSqlModalOpen(false)}
+        user={user}
+        lastSyncedAt={lastSyncedAt}
+        isSyncing={isSyncing}
+        onManualSync={handleManualSync}
+        household={collaboration}
+        accounts={accounts}
+        transactions={transactions}
+        budgets={budgets}
+        emergencyFund={emergencyFund}
+        goals={goals}
+        investments={investments}
+        debts={debts}
+        assets={assets}
+        bills={bills}
       />
     </div>
   );

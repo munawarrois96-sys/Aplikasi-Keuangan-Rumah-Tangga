@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 256 },
+        "photoURL": { "type": "string", "maxLength": 1024 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["uid", "email"]
+    },
+    "HouseholdData": {
+      "title": "HouseholdData",
+      "description": "Aggregated household financial state synced across devices",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "accounts": { "type": "string", "maxLength": 500000 },
+        "transactions": { "type": "string", "maxLength": 1000000 },
+        "budgets": { "type": "string", "maxLength": 500000 },
+        "emergencyFund": { "type": "string", "maxLength": 100000 },
+        "goals": { "type": "string", "maxLength": 500000 },
+        "investments": { "type": "string", "maxLength": 500000 },
+        "debts": { "type": "string", "maxLength": 500000 },
+        "assets": { "type": "string", "maxLength": 500000 },
+        "bills": { "type": "string", "maxLength": 500000 },
+        "collaboration": { "type": "string", "maxLength": 100000 },
+        "leakReport": { "type": "string", "maxLength": 500000 },
+        "lastSyncedAt": { "type": "string", "maxLength": 64 },
+        "deviceLabel": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["userId", "lastSyncedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user document matching authenticated UID"
+    },
+    "/users/{userId}/household/main": {
+      "schema": "HouseholdData",
+      "description": "Household synchronized financial state for cross-device persistence"
+    }
+  }
+}
