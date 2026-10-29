@@ -1,0 +1,8 @@
+{
+  "name": "Aplikasi Keuangan Rumah Tangga",
+  "description": "Sistem Manajemen & Asisten Keuangan Keluarga Terintegrasi berbasis AI bernuansa biru langit, mencakup arus kas, smart budgeting, dana darurat, pelacak utang, neraca aset, dan deteksi kebocoran halus.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
